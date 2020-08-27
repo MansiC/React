@@ -1,8 +1,16 @@
 import React, { Component } from "react";
-import { Navbar, NavbarBrand } from "reactstrap";
+import Home from "./HomeComponent";
 import Menu from "./MenuComponent";
+import Contact from "./ContactComponent";
+import About from "./AboutComponent";
 import DishDetail from "./DishDetailComponent";
+import Header from "./HeaderComponent";
+import Footer from "./FooterComponent";
 import { DISHES } from "../Shared/dishes";
+import { COMMENTS } from "../Shared/comments";
+import { LEADERS } from "../Shared/leaders";
+import { PROMOTIONS } from "../Shared/promotions";
+import { Switch, Route, Redirect } from "react-router-dom";
 
 class Main extends Component {
   constructor(props) {
@@ -10,12 +18,10 @@ class Main extends Component {
 
     this.state = {
       dishes: DISHES,
-      selectedDish: null,
+      comments: COMMENTS,
+      leaders: LEADERS,
+      promotions: PROMOTIONS,
     };
-  }
-
-  onDishSelect(dishId) {
-    this.setState({ selectedDish: dishId });
   }
 
   renderDish(dish) {
@@ -35,18 +41,55 @@ class Main extends Component {
   }
 
   render() {
+    const Homepage = (props) => {
+      return (
+        <Home
+          dish={this.state.dishes.filter((dish) => dish.featured === true)[0]}
+          promotion={
+            this.state.promotions.filter((promo) => promo.featured === true)[0]
+          }
+          leader={
+            this.state.leaders.filter((leader) => leader.featured === true)[0]
+          }
+        />
+      );
+    };
+
+    const DishWithId = ({ match }) => {
+      return (
+        <DishDetail
+          dish={
+            this.state.dishes.filter(
+              (dish) => dish.id === parseInt(match.params.dishId, 10)
+            )[0]
+          }
+          comments={this.state.comments.filter(
+            (comments) => comments.dishId === parseInt(match.params.dishId, 10)
+          )}
+        />
+      );
+    };
+
     return (
       <div>
-        <Navbar dark color="primary">
-          <div className="container">
-            <NavbarBrand href="/">Restorante Con Fusion</NavbarBrand>
-          </div>
-        </Navbar>
-        <Menu
-          dishes={this.state.dishes}
-          onClick={(dishId) => this.onDishSelect(dishId)}
-        />
-        {this.renderDish(this.state.selectedDish)}
+        <Header />
+        <Switch>
+          <Route path="/home" component={Homepage} />
+          <Route
+            exact
+            path="/menu"
+            component={() => <Menu dishes={this.state.dishes} />}
+          />
+          <Route path="/menu/:dishId" component={DishWithId} />
+          <Route exact path="/contactus" component={Contact} />
+          <Route
+            exact
+            path="/aboutus"
+            component={() => <About leaders={this.state.leaders} />}
+          />
+          <Redirect to="/home" />
+        </Switch>
+        <Footer />
       </div>
     );
   }
